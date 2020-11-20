@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/http-echo/version"
@@ -18,10 +19,15 @@ const (
 )
 
 // withAppHeaders adds application headers such as X-App-Version and X-App-Name.
-func withAppHeaders(h http.HandlerFunc) http.HandlerFunc {
+func withAppHeaders(h http.HandlerFunc, echoHeaders bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(httpHeaderAppName, version.Name)
 		w.Header().Set(httpHeaderAppVersion, version.Version)
+		if echoHeaders {
+			for name, values := range r.Header {
+				w.Header().Set(name, strings.Join(values, ","))
+			}
+		}
 		h(w, r)
 	}
 }
